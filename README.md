@@ -89,7 +89,7 @@ The overall guideline is to maintain simplicity, transparency, and modular autom
 
 ## Pipeline Design
 
-![Pipeline Design](https://drive.google.com/file/d/1oqcqdgeXJXHdy_2PoQghjYAkyG7Lmog4/view?usp=sharing)
+![Pipeline Design](https://drive.google.com/uc?export=view&id=1oqcqdgeXJXHdy_2PoQghjYAkyG7Lmog4)
 
 **Note:** The tools and configurations subject to refinement. The current setup demonstrates core functionality, while final tool selection and integration will evolve as the project progresses.
 
