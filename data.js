@@ -1,4 +1,5 @@
-import Database from "better-sqlite3";
+// data.js (CommonJS)
+const Database = require("better-sqlite3");
 const DB_PATH = process.env.DB_PATH || "./app.db";
 
 const db = new Database(DB_PATH);
@@ -11,13 +12,15 @@ db.exec(`
   );
 `);
 
-export function listTasks() {
+function listTasks() {
   return db.prepare("SELECT id, title, description FROM tasks ORDER BY id DESC").all();
 }
-export function createTask(title, description = "") {
+function createTask(title, description = "") {
   const info = db.prepare("INSERT INTO tasks (title, description) VALUES (?, ?)").run(title, description);
   return db.prepare("SELECT id, title, description FROM tasks WHERE id=?").get(info.lastInsertRowid);
 }
-export function deleteTask(id) {
+function deleteTask(id) {
   return db.prepare("DELETE FROM tasks WHERE id=?").run(id).changes > 0;
 }
+
+module.exports = { listTasks, createTask, deleteTask };

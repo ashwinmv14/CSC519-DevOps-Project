@@ -1,44 +1,45 @@
-import express from "express";
-import * as db from "./data.js";
-import dotenv from "dotenv";
-dotenv.config();
+// app.js
+const express = require("express");
+const { listTasks, createTask, deleteTask } = require("./data");
 
 const app = express();
+const PORT = process.env.PORT || 8080;
+
 app.use(express.json());
 
-const PORT = process.env.PORT || 8000;
-const FEATURE_ANALYTICS = (process.env.FEATURE_ANALYTICS || "false") === "true";
-const FEATURE_HEALTH = (process.env.FEATURE_HEALTH || "true") === "true";
+// Health
+app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
-app.get("/", (_req, res) => res.json({ message: "TaskTracker Node API" }));
+// List
+app.get("/tasks", (_req, res) => res.json(listTasks()));
 
-app.get("/health", (_req, res) => {
-  if (!FEATURE_HEALTH) return res.status(503).json({ status: "disabled" });
-  return res.json({ status: "ok" });
-});
-
-app.get("/tasks", (_req, res) => res.json(db.listTasks()));
-
+// Create
 app.post("/tasks", (req, res) => {
-  const { title, description = "" } = req.query.title ? req.query : req.body;
-  if (!title) return res.status(400).json({ error: "title required" });
+  const { title, description = "" } = req.body || {};
+  if (!title || typeof title !== "string") {
+    return res.status(400).json({ error: "Title is required" });
+  }
   try {
-    const t = db.createTask(title, description);
-    res.json(t);
-  } catch {
-    res.status(400).json({ error: "duplicate title" });
+    const created = createTask(title.trim(), description);
+    return res.status(201).json(created);
+  } catch (e) {
+    // likely UNIQUE(title) violation
+    return res.status(409).json({ error: "Task title must be unique" });
   }
 });
 
+// Delete
 app.delete("/tasks/:id", (req, res) => {
-  const ok = db.deleteTask(Number(req.params.id));
-  if (!ok) return res.status(404).json({ error: "not found" });
-  res.json({ deleted: Number(req.params.id) });
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid id" });
+  const ok = deleteTask(id);
+  if (!ok) return res.status(404).json({ error: "Task not found" });
+  return res.json({ message: "Task deleted" });
 });
 
-export default app;
-
-// only start server if not running under test
-if (!process.env.JEST_WORKER_ID) {
-  app.listen(PORT, () => console.log(`TaskTracker listening on http://0.0.0.0:${PORT}`));
+// Start if run directly
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`TaskTracker running on :${PORT}`));
 }
+
+module.exports = app;
