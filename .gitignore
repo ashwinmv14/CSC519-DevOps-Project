@@ -5,3 +5,5 @@ npm-debug.log*
 coverage/
 .DS_Store
 app.db
+app.db-shm
+app.db-wal
